@@ -52,6 +52,7 @@ SELECT * FROM t ORDER BY club;
 
 2. Core totals (unique visits, pageviews, income, season revenue) ?
 ```sql
+
 */
 WITH t AS (
   SELECT 'SC Braga' AS club,
