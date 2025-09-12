@@ -38,7 +38,7 @@ Season Revenue ($) = SUM(Daily Website Income)
 
 My analysis code/features i worked with:
 
- 1. Row counts & date coverage by club ? 
+1. Row counts & date coverage by club ? 
 ```sql
 */
 WITH t AS (
@@ -49,7 +49,6 @@ WITH t AS (
   SELECT N'Vitória SC', COUNT(*), MIN([date]), MAX([date]) FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY club;
-
 
 2. Core totals (unique visits, pageviews, income, season revenue) ?
 ```sql
@@ -74,3 +73,23 @@ WITH t AS (
 )
 SELECT * FROM t ORDER BY total_income DESC;
 
+3. Weighted CPM & EPMV (income-weighted is correct)?
+```sql
+ */
+WITH t AS (
+  SELECT 'SC Braga' AS club,
+         1000.0 * SUM(daily_website_income) / NULLIF(SUM(daily_page_views),0)     AS weighted_cpm,
+         1000.0 * SUM(daily_website_income) / NULLIF(SUM(daily_unique_visits),0)  AS weighted_epmv
+  FROM dbo.scbraga_pt
+  UNION ALL
+  SELECT 'Sporting CP',
+         1000.0 * SUM(daily_website_income) / NULLIF(SUM(daily_page_views),0),
+         1000.0 * SUM(daily_website_income) / NULLIF(SUM(daily_unique_visits),0)
+  FROM dbo.sportingcp_pt
+  UNION ALL
+  SELECT N'Vitória SC',
+         1000.0 * SUM(daily_website_income) / NULLIF(SUM(daily_page_views),0),
+         1000.0 * SUM(daily_website_income) / NULLIF(SUM(daily_unique_visits),0)
+  FROM dbo.vitoria_sc_pt
+)
+SELECT * FROM t ORDER BY weighted_epmv DESC;
