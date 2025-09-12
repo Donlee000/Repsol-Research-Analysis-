@@ -52,7 +52,6 @@ SELECT * FROM t ORDER BY club;
 
 2. Core totals (unique visits, pageviews, income, season revenue) ?
 ```sql
-
 */
 WITH t AS (
   SELECT 'SC Braga' AS club,
@@ -118,4 +117,25 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY avg_daily_income DESC;
+
+Q5) Median daily income (robust to outliers) ?
+```sql
+ */
+WITH t AS (
+  SELECT DISTINCT 'SC Braga' AS club,
+         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY daily_website_income)
+           OVER () AS median_daily_income
+  FROM dbo.scbraga_pt
+  UNION ALL
+  SELECT DISTINCT 'Sporting CP',
+         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY daily_website_income)
+           OVER () 
+  FROM dbo.sportingcp_pt
+  UNION ALL
+  SELECT DISTINCT N'Vitória SC',
+         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY daily_website_income)
+           OVER () 
+  FROM dbo.vitoria_sc_pt
+)
+SELECT * FROM t ORDER BY median_daily_income DESC;
 
