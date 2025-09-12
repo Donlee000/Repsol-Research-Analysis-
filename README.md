@@ -93,3 +93,28 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY weighted_epmv DESC;
+
+4. Average day performance per club? 
+```sql
+*/
+WITH t AS (
+  SELECT 'SC Braga' AS club,
+         AVG(CAST(daily_website_income AS decimal(18,6))) AS avg_daily_income,
+         AVG(CAST(daily_page_views     AS decimal(18,6))) AS avg_daily_page_views,
+         AVG(CAST(daily_unique_visits  AS decimal(18,6))) AS avg_daily_unique_visits
+  FROM dbo.scbraga_pt
+  UNION ALL
+  SELECT 'Sporting CP',
+         AVG(CAST(daily_website_income AS decimal(18,6))),
+         AVG(CAST(daily_page_views     AS decimal(18,6))),
+         AVG(CAST(daily_unique_visits  AS decimal(18,6)))
+  FROM dbo.sportingcp_pt
+  UNION ALL
+  SELECT N'Vitória SC',
+         AVG(CAST(daily_website_income AS decimal(18,6))),
+         AVG(CAST(daily_page_views     AS decimal(18,6))),
+         AVG(CAST(daily_unique_visits  AS decimal(18,6)))
+  FROM dbo.vitoria_sc_pt
+)
+SELECT * FROM t ORDER BY avg_daily_income DESC;
+
