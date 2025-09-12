@@ -37,3 +37,17 @@ Season Revenue ($) = SUM(Daily Website Income)
 ### Data Analysis
 
 My analysis code/features i worked with:
+
+. 1 Row counts & date coverage by club ? 
+```sql
+*/
+WITH t AS (
+  SELECT 'SC Braga' AS club, COUNT(*) AS rows_, MIN([date]) AS first_date, MAX([date]) AS last_date FROM dbo.scbraga_pt
+  UNION ALL
+  SELECT 'Sporting CP', COUNT(*), MIN([date]), MAX([date]) FROM dbo.sportingcp_pt
+  UNION ALL
+  SELECT N'Vitória SC', COUNT(*), MIN([date]), MAX([date]) FROM dbo.vitoria_sc_pt
+)
+SELECT * FROM t ORDER BY club;
+
+ i worked with:
