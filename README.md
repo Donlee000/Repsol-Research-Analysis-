@@ -34,3 +34,6 @@ Season Revenue ($) = SUM(Daily Website Income)
 
 6. Merged datasets – Combined the three club files into a unified structure for cross-club comparison.
 7. Validation checks – Verified totals (attendance per season, average occupancy rates, and revenue sums) against source reports to ensure accuracy.                                                
+### Data Analysis
+
+My analysis code/features i worked with:
