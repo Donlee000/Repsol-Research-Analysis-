@@ -118,7 +118,7 @@ WITH t AS (
 )
 SELECT * FROM t ORDER BY avg_daily_income DESC;
 
-Q5) Median daily income (robust to outliers) ?
+5. Median daily income (robust to outliers) ?
 ```sql
  */
 WITH t AS (
