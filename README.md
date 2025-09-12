@@ -12,6 +12,8 @@ The dataset consists of official 2022 season metrics for SC Braga, Sporting CP, 
 
 ### Tools
 
-- Excel - Data Cleanning [Download here](https://1drv.ms/x/c/727c76b1462e1994/EVC1gI6HpAhMq8Zf80Db4isB7gU_n07l1NsJA6HzvxPw3g?e=GMhNo0)(https://1drv.ms/x/c/727c76b1462e1994/EZziOHCF3stOiLZV2GkvXy4BfdHIr44zVUouUs5kjzr6Hg?e=vMe5OB)(https://1drv.ms/x/c/727c76b1462e1994/ER6iBfNPIQdEiHuW6ATiUfQB0cH_Iq0aQyJpJsKfRCngSw?e=KiXPIB)
-- SQL Server - Data Analysis [Download here]()
+- Excel - Data Cleanning [Download here](https://1drv.ms/x/c/727c76b1462e1994/EVC1gI6HpAhMq8Zf80Db4isB7gU_n07l1NsJA6HzvxPw3g?e=GMhNo0) 
+- [Download here](https://1drv.ms/x/c/727c76b1462e1994/EZziOHCF3stOiLZV2GkvXy4BfdHIr44zVUouUs5kjzr6Hg?e=vMe5OB) 
+- [Download here](https://1drv.ms/x/c/727c76b1462e1994/ER6iBfNPIQdEiHuW6ATiUfQB0cH_Iq0aQyJpJsKfRCngSw?e=KiXPIB)
+- SQL Server - Data Analysis [Download here](https://1drv.ms/u/c/29f0e449ed577bcc/EQ4XJjSTE3ZKpO4c2-pJhnQB3tWdNR-4Rgp7l4J9bUA-Og?e=3HnJZj)
 - Power BI - Creating Reports [Download here]()
