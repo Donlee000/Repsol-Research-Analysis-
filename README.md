@@ -38,7 +38,7 @@ Season Revenue ($) = SUM(Daily Website Income)
 
 My analysis code/features i worked with:
 
-. 1 Row counts & date coverage by club ? 
+ 1. Row counts & date coverage by club ? 
 ```sql
 */
 WITH t AS (
@@ -50,4 +50,27 @@ WITH t AS (
 )
 SELECT * FROM t ORDER BY club;
 
- i worked with:
+
+2. Q2) Core totals (unique visits, pageviews, income, season revenue) ?
+```sql
+*/
+WITH t AS (
+  SELECT 'SC Braga' AS club,
+         SUM(daily_unique_visits) AS total_unique_visits,
+         SUM(daily_page_views)    AS total_page_views,
+         SUM(daily_website_income) AS total_income,
+         SUM(season_revenue)       AS total_season_revenue
+  FROM dbo.scbraga_pt
+  UNION ALL
+  SELECT 'Sporting CP',
+         SUM(daily_unique_visits), SUM(daily_page_views),
+         SUM(daily_website_income), SUM(season_revenue)
+  FROM dbo.sportingcp_pt
+  UNION ALL
+  SELECT N'Vitória SC',
+         SUM(daily_unique_visits), SUM(daily_page_views),
+         SUM(daily_website_income), SUM(season_revenue)
+  FROM dbo.vitoria_sc_pt
+)
+SELECT * FROM t ORDER BY total_income DESC;
+
