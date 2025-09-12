@@ -51,7 +51,7 @@ WITH t AS (
 SELECT * FROM t ORDER BY club;
 
 
-2. Q2) Core totals (unique visits, pageviews, income, season revenue) ?
+2. Core totals (unique visits, pageviews, income, season revenue) ?
 ```sql
 */
 WITH t AS (
