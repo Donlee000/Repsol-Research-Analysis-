@@ -411,3 +411,96 @@ FROM agg a
 JOIN provided p
   ON p.club = a.club
 ORDER BY a.club;
+
+
+13 - ROI by club (totals overridden), cost = 125,000
+```sql
+   Uses your provided totals:
+   - SC Braga     = 175,235.00
+   - Sporting CP  = 193,150.00
+   - Vitória SC   = 160,420.00
+   Outputs: total_revenue, sponsor_cost, Profit/Shortfall, gap_to_break_even, ROI % (positive) */
+
+DECLARE @annual_sponsor_cost money = 125000;
+
+WITH totals AS (
+    SELECT * FROM (VALUES
+        ('SC Braga',      CAST(175235.00 AS decimal(18,2))),
+        ('Sporting CP',   CAST(193150.00 AS decimal(18,2))),
+        (N'Vitória SC',   CAST(160420.00 AS decimal(18,2)))
+    ) v(club, total_revenue)
+)
+SELECT
+    club,
+    CAST(total_revenue AS money)                    AS total_revenue,
+    @annual_sponsor_cost                            AS sponsor_cost,
+    CASE WHEN total_revenue >= @annual_sponsor_cost THEN 'Profit' ELSE 'Shortfall' END AS outcome,
+    CAST(ABS(total_revenue - @annual_sponsor_cost) AS money) AS gap_to_break_even,
+    CAST(ROUND(ABS((total_revenue - @annual_sponsor_cost) * 100.0
+                   / NULLIF(@annual_sponsor_cost,0)), 2) AS decimal(8,2)) AS roi_percent
+FROM totals
+ORDER BY roi_percent DESC;
+
+
+14. Rank clubs by ROI (override totals), season_year = 2022, cost = 125,000
+```sq
+   Totals provided by you:
+   - SC Braga     = 163,535.00
+   - Sporting CP  = 185,125.00
+   - Vitória SC   = 155,120.00
+*/
+
+WITH totals AS (
+    SELECT * FROM (VALUES
+        ('SC Braga',    2022, CAST(163535.00 AS decimal(18,2))),
+        ('Sporting CP', 2022, CAST(185125.00 AS decimal(18,2))),
+        (N'Vitória SC', 2022, CAST(155120.00 AS decimal(18,2)))
+    ) v(club, season_year, total_revenue)
+)
+SELECT
+    club,
+    season_year,
+    CAST(total_revenue AS money)                        AS total_revenue,
+    CAST(125000 AS money)                               AS sponsor_cost,
+    CASE WHEN total_revenue >= 125000 THEN 'Profit' ELSE 'Shortfall' END AS outcome,
+    CAST(ABS(total_revenue - 125000) AS money)          AS gap_to_break_even,
+    CAST(ROUND(ABS((total_revenue - 125000) * 100.0 / 125000.0), 2) AS decimal(8,2)) AS roi_percent
+FROM totals
+ORDER BY roi_percent DESC;
+
+
+15. Cumulative season revenue curve (normalize dates to 2021–2022) */
+```sql
+WITH d AS (
+    SELECT 'SC Braga'    AS club, [date], season_revenue FROM dbo.scbraga_pt
+    UNION ALL
+    SELECT 'Sporting CP' AS club, [date], season_revenue FROM dbo.sportingcp_pt
+    UNION ALL
+    SELECT N'Vitória SC' AS club, [date], season_revenue FROM dbo.vitoria_sc_pt
+),
+normalized AS (
+    /* Force Aug–Dec to 2021, Jan–Jun to 2022 */
+    SELECT
+        club,
+        2022 AS season_year,  -- label the season as 2022 (i.e., 2021–22)
+        DATEFROMPARTS(
+            CASE WHEN MONTH([date]) >= 8 THEN 2021 ELSE 2022 END, -- forced year
+            MONTH([date]),
+            DAY([date])
+        ) AS season_date,
+        season_revenue
+    FROM d
+)
+SELECT
+    club,
+    season_year,
+    season_date AS [date],
+    SUM(season_revenue) OVER (
+        PARTITION BY club, season_year
+        ORDER BY season_date
+        ROWS UNBOUNDED PRECEDING
+    ) AS cum_revenue
+FROM normalized
+-- keep just the season months Aug..Jun (typical 8–11 + 1–6); remove this WHERE if you want all rows
+WHERE MONTH(season_date) IN (8,9,10,11,12,1,2,3,4,5,6)
+ORDER BY club, season_date;
