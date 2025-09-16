@@ -139,3 +139,37 @@ WITH t AS (
 )
 SELECT * FROM t ORDER BY median_daily_income DESC;
 
+6. Volatility: std dev of daily income ?
+```sql
+*/
+WITH t AS (
+  SELECT 'SC Braga' AS club, STDEV(CAST(daily_website_income AS float)) AS income_stddev FROM dbo.scbraga_pt
+  UNION ALL
+  SELECT 'Sporting CP', STDEV(CAST(daily_website_income AS float)) FROM dbo.sportingcp_pt
+  UNION ALL
+  SELECT N'Vitória SC', STDEV(CAST(daily_website_income AS float)) FROM dbo.vitoria_sc_pt
+)
+SELECT * FROM t ORDER BY income_stddev ASC;  -- lower = steadier
+
+7. Days beating own average (consistency)?
+```sql
+ */
+WITH b AS (
+  SELECT 'SC Braga' AS club, daily_website_income,
+         AVG(daily_website_income) OVER () AS club_avg
+  FROM dbo.scbraga_pt
+), s AS (
+  SELECT 'Sporting CP' AS club, daily_website_income,
+         AVG(daily_website_income) OVER () AS club_avg
+  FROM dbo.sportingcp_pt
+), v AS (
+  SELECT N'Vitória SC' AS club, daily_website_income,
+         AVG(daily_website_income) OVER () AS club_avg
+  FROM dbo.vitoria_sc_pt
+), x AS (
+  SELECT * FROM b UNION ALL SELECT * FROM s UNION ALL SELECT * FROM v
+)
+SELECT club, SUM(CASE WHEN daily_website_income > club_avg THEN 1 ELSE 0 END) AS days_above_avg
+FROM x
+GROUP BY club
+ORDER BY days_above_avg DESC;
