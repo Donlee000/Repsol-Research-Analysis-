@@ -297,3 +297,117 @@ FROM monthly m
 JOIN bucket_days b
   ON b.club = m.club AND b.bucket_year = m.bucket_year
 ORDER BY m.club, [year], m.month_start;
+
+
+11. Best revenue month per club (season Aug 2021 → Jul 2022)? 
+```sql
+*/
+;WITH d AS (
+    SELECT 'SC Braga'    AS club, [date], daily_website_income FROM dbo.scbraga_pt
+    UNION ALL
+    SELECT 'Sporting CP' AS club, [date], daily_website_income FROM dbo.sportingcp_pt
+    UNION ALL
+    SELECT 'Vitoria SC'  AS club, [date], daily_website_income FROM dbo.vitoria_sc_pt
+),
+norm AS (
+    /* Map months to the 2021–2022 season window:
+       Aug–Dec → 2021, Jan–Jul → 2022 (keep month, set day=1 for grouping) */
+    SELECT
+        club,
+        DATEFROMPARTS(
+            CASE WHEN MONTH([date]) >= 8 THEN 2021 ELSE 2022 END,
+            MONTH([date]),
+            1
+        ) AS month_start,
+        daily_website_income
+    FROM d
+    WHERE MONTH([date]) IN (8,9,10,11,12,1,2,3,4,5,6,7)  -- Aug..Jul
+),
+m AS (
+    SELECT
+        club,
+        month_start,
+        SUM(daily_website_income) AS month_income
+    FROM norm
+    GROUP BY club, month_start
+),
+r AS (
+    SELECT
+        m.*,
+        ROW_NUMBER() OVER (PARTITION BY club ORDER BY month_income DESC, month_start) AS rn
+    FROM m
+)
+SELECT
+    club,
+    DATENAME(MONTH, month_start) AS month_name,
+    month_start,
+    month_income
+FROM r
+WHERE rn = 1
+ORDER BY month_income DESC;
+
+12. Season totals (Aug 2021 → Jun 2022) with PV/UV and overridden season_revenue?
+ */
+```sql
+;WITH d AS (
+    SELECT 'SC Braga'    AS club, [date], daily_website_income, season_revenue,
+           daily_page_views, daily_unique_visits
+    FROM dbo.scbraga_pt
+    UNION ALL
+    SELECT 'Sporting CP', [date], daily_website_income, season_revenue,
+           daily_page_views, daily_unique_visits
+    FROM dbo.sportingcp_pt
+    UNION ALL
+    SELECT 'Vitoria SC',  [date], daily_website_income, season_revenue,
+           daily_page_views, daily_unique_visits
+    FROM dbo.vitoria_sc_pt
+),
+norm AS (
+    -- Keep only Aug..Jun; map months Aug–Dec→2021 and Jan–Jun→2022 (for season window control)
+    SELECT
+        club,
+        DATEFROMPARTS(
+            CASE WHEN MONTH([date]) >= 8 THEN 2021 ELSE 2022 END,
+            MONTH([date]),
+            DAY([date])
+        ) AS season_date,
+        daily_website_income,
+        season_revenue,
+        daily_page_views,
+        daily_unique_visits
+    FROM d
+    WHERE MONTH([date]) IN (8,9,10,11,12,1,2,3,4,5,6)
+),
+agg AS (
+    SELECT
+        club,
+        '2021-2022' AS season_label,
+        SUM(CAST(daily_website_income AS decimal(18,2))) AS season_income_total,
+        SUM(CAST(daily_page_views     AS bigint))        AS total_page_views,
+        SUM(CAST(daily_unique_visits  AS bigint))        AS total_unique_visits
+        -- If you want to see the raw table sum for season_revenue, uncomment next line:
+        -- ,SUM(CAST(season_revenue AS decimal(18,2)))      AS season_revenue_raw
+    FROM norm
+    GROUP BY club
+),
+provided AS (
+    -- Override season_revenue with your supplied totals
+    SELECT * FROM (VALUES
+        ('SC Braga',    CAST(175235.00 AS decimal(18,2))),
+        ('Sporting CP', CAST(192250.00 AS decimal(18,2))),
+        ('Vitoria SC',  CAST(155220.00 AS decimal(18,2)))
+    ) v(club, season_revenue_total)
+)
+SELECT
+    a.club,
+    a.season_label,
+    CAST(a.season_income_total AS money) AS season_income_total,
+    CAST(p.season_revenue_total AS money) AS season_revenue_total,  -- overridden values
+    a.total_page_views,
+    a.total_unique_visits
+    -- If you kept season_revenue_raw above, you can show it here for reference:
+    -- ,CAST(a.season_revenue_raw AS money) AS season_revenue_raw
+FROM agg a
+JOIN provided p
+  ON p.club = a.club
+ORDER BY a.club;
