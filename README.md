@@ -173,3 +173,54 @@ SELECT club, SUM(CASE WHEN daily_website_income > club_avg THEN 1 ELSE 0 END) AS
 FROM x
 GROUP BY club
 ORDER BY days_above_avg DESC;
+
+8. Top 10 revenue days per club (dates normalized to 2021 or 2022) 
+```sql
+*/
+;WITH t AS (
+    SELECT 'SC Braga' AS club, [date], daily_website_income
+    FROM (SELECT TOP 10 [date], daily_website_income
+          FROM dbo.scbraga_pt ORDER BY daily_website_income DESC) q
+    UNION ALL
+    SELECT 'Sporting CP', [date], daily_website_income
+    FROM (SELECT TOP 10 [date], daily_website_income
+          FROM dbo.sportingcp_pt ORDER BY daily_website_income DESC) q
+    UNION ALL
+    SELECT 'Vitoria SC', [date], daily_website_income
+    FROM (SELECT TOP 10 [date], daily_website_income
+          FROM dbo.vitoria_sc_pt ORDER BY daily_website_income DESC) q
+),
+norm_prep AS (
+    SELECT
+        club,
+        [date]              AS original_date,
+        daily_website_income,
+        CASE WHEN YEAR([date]) <= 2021 THEN 2021 ELSE 2022 END AS norm_year,
+        MONTH([date])       AS m,
+        DAY([date])         AS d
+    FROM t
+),
+norm AS (
+    /* clamp the day if the normalized month in 2021/2022 has fewer days (e.g., 29-Feb) */
+    SELECT
+        club,
+        original_date,
+        daily_website_income,
+        DATEFROMPARTS(
+            norm_year,
+            m,
+            CASE
+                WHEN DAY(EOMONTH(DATEFROMPARTS(norm_year, m, 1))) < d
+                     THEN DAY(EOMONTH(DATEFROMPARTS(norm_year, m, 1)))
+                ELSE d
+            END
+        ) AS norm_date
+    FROM norm_prep
+)
+SELECT
+    club,
+    norm_date AS [date],      -- normalized to 2021 or 2022
+    original_date,            -- original date for reference
+    daily_website_income
+FROM norm
+ORDER BY club, daily_website_income DESC;
