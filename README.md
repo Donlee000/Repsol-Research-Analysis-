@@ -224,3 +224,76 @@ SELECT
     daily_website_income
 FROM norm
 ORDER BY club, daily_website_income DESC;
+
+
+9. Monthly revenue (1..30th or EOMONTH), by club,
+         bucketed as: 2021 = Aug–Dec 2021, 2022 = Jan–Jul 2022 */
+```sql
+
+;WITH all_days AS (
+    SELECT 'SC Braga'    AS club, [date], daily_website_income FROM dbo.scbraga_pt
+    UNION ALL
+    SELECT 'Sporting CP' AS club, [date], daily_website_income FROM dbo.sportingcp_pt
+    UNION ALL
+    SELECT 'Vitoria SC'  AS club, [date], daily_website_income FROM dbo.vitoria_sc_pt
+),
+month_frames AS (
+    /* One row per club×month with anchor = 30th (or month end for Feb).
+       Keep only Aug–Dec 2021 and Jan–Jul 2022, and tag each month with bucket_year. */
+    SELECT DISTINCT
+        club,
+        CASE
+            WHEN YEAR([date]) = 2021 AND MONTH([date]) BETWEEN 8 AND 12 THEN 2021
+            WHEN YEAR([date]) = 2022 AND MONTH([date]) BETWEEN 1 AND 7  THEN 2022
+            ELSE NULL
+        END AS bucket_year,
+        DATEFROMPARTS(YEAR([date]), MONTH([date]), 1) AS month_start,
+        CASE
+            WHEN DAY(EOMONTH([date])) >= 30
+                 THEN DATEFROMPARTS(YEAR([date]), MONTH([date]), 30)   -- 30th for 30/31-day months
+            ELSE EOMONTH([date])                                      -- last day for Feb
+        END AS anchor_date
+    FROM all_days
+),
+monthly AS (
+    /* Sum income from day 1 through anchor day for each club×month within the buckets */
+    SELECT
+        m.club,
+        m.bucket_year,
+        m.month_start,
+        m.anchor_date,
+        SUM(d.daily_website_income)                                         AS month_income_1_to_anchor,
+        COUNT(*)                                                            AS days_count_present,
+        AVG(CAST(d.daily_website_income AS decimal(18,6)))                  AS avg_daily_income_present,
+        SUM(d.daily_website_income) * 1.0 /
+          NULLIF(CASE WHEN DAY(EOMONTH(m.month_start)) >= 30
+                      THEN 30 ELSE DAY(EOMONTH(m.month_start)) END, 0)      AS avg_daily_income_fixed
+    FROM month_frames m
+    JOIN all_days d
+      ON d.club  = m.club
+     AND d.[date] >= m.month_start
+     AND d.[date] <= m.anchor_date
+    WHERE m.bucket_year IN (2021, 2022)
+    GROUP BY m.club, m.bucket_year, m.month_start, m.anchor_date
+),
+bucket_days AS (
+    /* Total number of included days per club×bucket (for your “one count per year” requirement) */
+    SELECT club, bucket_year, SUM(days_count_present) AS bucket_days_count
+    FROM monthly
+    GROUP BY club, bucket_year
+)
+SELECT
+    m.club,
+    m.bucket_year AS [year],
+    DATENAME(MONTH, m.month_start) AS month_name,
+    m.month_start,
+    m.anchor_date,
+    m.month_income_1_to_anchor      AS month_income,
+    m.days_count_present,
+    b.bucket_days_count,            -- total included days for the entire bucket (per club)
+    m.avg_daily_income_present,     -- average over present rows
+    m.avg_daily_income_fixed        -- divides by 30 (or Feb’s 28/29)
+FROM monthly m
+JOIN bucket_days b
+  ON b.club = m.club AND b.bucket_year = m.bucket_year
+ORDER BY m.club, [year], m.month_start;
