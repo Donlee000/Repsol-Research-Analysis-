@@ -49,6 +49,7 @@ WITH t AS (
   SELECT N'Vitória SC', COUNT(*), MIN([date]), MAX([date]) FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY club;
+```
 
 2. Core totals (unique visits, pageviews, income, season revenue) ?
 ```sql
@@ -72,6 +73,7 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY total_income DESC;
+```
 
 3. Weighted CPM & EPMV (income-weighted is correct)?
 ```sql
@@ -93,6 +95,7 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY weighted_epmv DESC;
+```
 
 4. Average day performance per club? 
 ```sql
@@ -117,6 +120,7 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY avg_daily_income DESC;
+```
 
 5. Median daily income (robust to outliers) ?
 ```sql
@@ -138,6 +142,7 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY median_daily_income DESC;
+```
 
 6. Volatility: std dev of daily income ?
 ```sql
@@ -150,6 +155,7 @@ WITH t AS (
   SELECT N'Vitória SC', STDEV(CAST(daily_website_income AS float)) FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY income_stddev ASC;  -- lower = steadier
+```
 
 7. Days beating own average (consistency)?
 ```sql
@@ -173,6 +179,7 @@ SELECT club, SUM(CASE WHEN daily_website_income > club_avg THEN 1 ELSE 0 END) AS
 FROM x
 GROUP BY club
 ORDER BY days_above_avg DESC;
+```
 
 8. Top 10 revenue days per club (dates normalized to 2021 or 2022) 
 ```sql
@@ -224,7 +231,7 @@ SELECT
     daily_website_income
 FROM norm
 ORDER BY club, daily_website_income DESC;
-
+```
 
 9. Monthly revenue (1..30th or EOMONTH), by club,
          bucketed as: 2021 = Aug–Dec 2021, 2022 = Jan–Jul 2022 */
@@ -297,9 +304,9 @@ FROM monthly m
 JOIN bucket_days b
   ON b.club = m.club AND b.bucket_year = m.bucket_year
 ORDER BY m.club, [year], m.month_start;
+```
 
-
-11. Best revenue month per club (season Aug 2021 → Jul 2022)? 
+10. Best revenue month per club (season Aug 2021 → Jul 2022)? 
 ```sql
 */
 ;WITH d AS (
@@ -345,8 +352,9 @@ SELECT
 FROM r
 WHERE rn = 1
 ORDER BY month_income DESC;
+```
 
-12. Season totals (Aug 2021 → Jun 2022) with PV/UV and overridden season_revenue?
+11. Season totals (Aug 2021 → Jun 2022) with PV/UV and overridden season_revenue?
  */
 ```sql
 ;WITH d AS (
@@ -411,9 +419,9 @@ FROM agg a
 JOIN provided p
   ON p.club = a.club
 ORDER BY a.club;
+```
 
-
-13 - ROI by club (totals overridden), cost = 125,000
+12. ROI by club (totals overridden), cost = 125,000
 ```sql
    Uses your provided totals:
    - SC Braga     = 175,235.00
@@ -440,9 +448,9 @@ SELECT
                    / NULLIF(@annual_sponsor_cost,0)), 2) AS decimal(8,2)) AS roi_percent
 FROM totals
 ORDER BY roi_percent DESC;
+```
 
-
-14. Rank clubs by ROI (override totals), season_year = 2022, cost = 125,000
+13. Rank clubs by ROI (override totals), season_year = 2022, cost = 125,000
 ```sq
    Totals provided by you:
    - SC Braga     = 163,535.00
@@ -467,9 +475,9 @@ SELECT
     CAST(ROUND(ABS((total_revenue - 125000) * 100.0 / 125000.0), 2) AS decimal(8,2)) AS roi_percent
 FROM totals
 ORDER BY roi_percent DESC;
+```
 
-
-15. Cumulative season revenue curve (normalize dates to 2021–2022) 
+14. Cumulative season revenue curve (normalize dates to 2021–2022) 
 ```sql
 */
 WITH d AS (
@@ -505,8 +513,9 @@ FROM normalized
 -- keep just the season months Aug..Jun (typical 8–11 + 1–6); remove this WHERE if you want all rows
 WHERE MONTH(season_date) IN (8,9,10,11,12,1,2,3,4,5,6)
 ORDER BY club, season_date;
+```
 
-16. Break-even date vs annual cost (normalize to 2021–2022, cost = 125,000)
+15. Break-even date vs annual cost (normalize to 2021–2022, cost = 125,000)
 ```sql
  */
 ;WITH d AS (
@@ -562,8 +571,9 @@ LEFT JOIN first_hit fh
        ON fh.club = o.club AND fh.season_year = o.season_year
 GROUP BY o.club, o.season_year, fh.break_even_date
 ORDER BY o.club;
+```
 
-17. Pages per visit (depth) 
+16. Pages per visit (depth) 
 ```sql
 */
 WITH t AS (
@@ -580,8 +590,9 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t ORDER BY pages_per_visit DESC;
+```
 
-18. Efficiency ratio: EPMV-to-CPM 
+17. Efficiency ratio: EPMV-to-CPM 
 ```sql
 */
 WITH w AS (
@@ -604,8 +615,9 @@ SELECT club, weighted_cpm, weighted_epmv,
        weighted_epmv / NULLIF(weighted_cpm,0) AS epmv_to_cpm_ratio
 FROM w
 ORDER BY epmv_to_cpm_ratio DESC;
+```
 
-19. Club share of total income 
+18. Club share of total income 
 ```sql
 */
 WITH s AS (
@@ -619,8 +631,9 @@ SELECT s.club, s.club_income,
        100.0 * s.club_income / NULLIF(total.all_income,0) AS income_share_pct
 FROM s CROSS JOIN total
 ORDER BY income_share_pct DESC;
+```
 
-20. CPM & EPMV percentiles (25/50/75) per club 
+19. CPM & EPMV percentiles (25/50/75) per club 
 ```sql
 */
 WITH b AS (
@@ -652,8 +665,9 @@ WITH b AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM b ORDER BY club;
+```
 
-21. Day-of-week revenue sums 
+20. Day-of-week revenue sums 
 ```sql
 */
 WITH t AS (
@@ -673,8 +687,8 @@ WITH t AS (
   GROUP BY DATENAME(WEEKDAY, [date])
 )
 SELECT * FROM t ORDER BY club, income DESC;
-
-22. Weekend vs weekday performance 
+```
+21. Weekend vs weekday performance 
 ```sql
 */
 WITH t AS (
@@ -700,9 +714,9 @@ WITH t AS (
   FROM dbo.vitoria_sc_pt
 )
 SELECT * FROM t;
+```
 
-
-23. Recomputed revenue per 1,000 (dates coerced to 2022, with your totals) 
+22. Recomputed revenue per 1,000 (dates coerced to 2022, with your totals) 
 ```sql
 */
 ;WITH all_days AS (
@@ -750,9 +764,9 @@ SELECT
 FROM agg a
 LEFT JOIN provided p ON p.club = a.club
 ORDER BY epmv_weighted DESC, cpm_weighted DESC;
+```
 
-
-24. Outlier days grouped into 2021 vs 2022 buckets (per club) 
+23. Outlier days grouped into 2021 vs 2022 buckets (per club) 
 ```sql
 */
 ;WITH all_days AS (
@@ -795,9 +809,9 @@ SELECT
 FROM tag
 GROUP BY club, norm_year
 ORDER BY club, [year];
+```
 
-
-25. Final overall ranking (override totals, normalized 2021–2022, cost = 125,000)
+24. Final overall ranking (override totals, normalized 2021–2022, cost = 125,000)
   
 Your totals:
    - SC Braga     = 175,235.00
@@ -856,8 +870,9 @@ FROM agg a
 JOIN provided p
   ON p.club = a.club AND p.season_year = a.season_year
 ORDER BY roi_percent DESC, weighted_epmv DESC, weighted_cpm DESC;
+```
 
-1. Season headline: total attendance, avg per match, avg occupancy (fixed column names) 
+25. Season headline: total attendance, avg per match, avg occupancy (fixed column names) 
 ```sql
 */
 ;WITH events AS (
@@ -902,9 +917,9 @@ SELECT
 FROM events
 GROUP BY club
 ORDER BY total_attendance DESC;
+```
 
-
-2. Who wins most events? (by attendance, count of match wins) 
+26. Who wins most events? (by attendance, count of match wins) 
 ```sql
 */
 ;WITH events AS (
@@ -923,9 +938,9 @@ FROM ranked
 WHERE rn = 1
 GROUP BY club
 ORDER BY match_wins DESC;
+```
 
-
-3. engagement per event: avg occupancy + “sell-out” count (>= 90%) 
+27. engagement per event: avg occupancy + “sell-out” count (>= 90%) 
 ```sql
 */
 ;WITH events AS (
@@ -950,9 +965,9 @@ SELECT club,
 FROM events
 GROUP BY club
 ORDER BY avg_occupancy_pct DESC, sellout_like_events DESC;
+```
 
-
-4. Consistency: volatility & coefficient of variation (lower = steadier) 
+28. Consistency: volatility & coefficient of variation (lower = steadier) 
 ```sql
 */
 ;WITH events AS (
@@ -967,8 +982,8 @@ SELECT club,
 FROM events
 GROUP BY club
 ORDER BY coeff_variation ASC;
-
-5. Top-3 matches by attendance per club 
+```
+29. Top-3 matches by attendance per club 
 ```sql
 */
 ;WITH e AS (
@@ -983,9 +998,9 @@ SELECT club, match_no, att
 FROM r
 WHERE rn <= 3
 ORDER BY club, att DESC;
+```
 
-
-6. Median & 90th-percentile attendance per club 
+30. Median & 90th-percentile attendance per club 
 ```sql
 */
 ;WITH e AS (
@@ -999,9 +1014,9 @@ SELECT DISTINCT
   PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY att) OVER (PARTITION BY club) AS p90_attendance
 FROM e
 ORDER BY club;
+```
 
-
-7. Over/under performance vs each club’s own average 
+31. Over/under performance vs each club’s own average 
 ```sql
 */
 ;WITH e AS (
@@ -1018,9 +1033,9 @@ SELECT club,
 FROM w
 GROUP BY club
 ORDER BY events_above_own_avg DESC, avg_lift_when_above DESC;
+```
 
-
-8. Match-by-match table: 1st/2nd/3rd by attendance each round 
+32. Match-by-match table: 1st/2nd/3rd by attendance each round 
 ```sql
 */
 ;WITH e AS (
@@ -1038,9 +1053,9 @@ SELECT match_no,
 FROM r
 GROUP BY match_no
 ORDER BY match_no;
+```
 
-
-9. Revenue potential ranking (club-specific ticket prices) 
+33. Revenue potential ranking (club-specific ticket prices) 
 ```sql
 */
 ;WITH e AS (
@@ -1082,9 +1097,9 @@ SELECT
                / NULLIF(SUM(gross_revenue_raw) OVER (),0), 2) AS decimal(6,2)) AS revenue_share_pct
 FROM agg
 ORDER BY gross_ticket_revenue DESC;
+```
 
-
-10. Final scoreboard (attendance share + occupancy + sell-outs) 
+34. Final scoreboard (attendance share + occupancy + sell-outs) 
 ```sql
 */
 ;WITH e AS (
@@ -1127,6 +1142,7 @@ SELECT club,
        total_att,
        avg_occ                   AS avg_occupancy_pct,
        sellouts                  AS sellout_like_events,
-       (0.50*att_share + 0.30*(avg_occ/100.0) + 0.20*sellout_share) AS composite_score
+       (0.50*att_share + 0.30*(avg_occ/100.0) + 0.20*sellout_share) AS composite_score;
+```
 FROM score
 ORDER BY composite_score DESC;
