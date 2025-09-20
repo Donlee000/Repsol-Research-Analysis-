@@ -1142,7 +1142,8 @@ SELECT club,
        total_att,
        avg_occ                   AS avg_occupancy_pct,
        sellouts                  AS sellout_like_events,
-       (0.50*att_share + 0.30*(avg_occ/100.0) + 0.20*sellout_share) AS composite_score;
-```
+       (0.50*att_share + 0.30*(avg_occ/100.0) + 0.20*sellout_share) AS composite_score
 FROM score
 ORDER BY composite_score DESC;
+```
+
