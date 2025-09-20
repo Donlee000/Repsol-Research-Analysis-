@@ -1147,3 +1147,28 @@ FROM score
 ORDER BY composite_score DESC;
 ```
 
+### Result and Findings 
+
+I analyzed three Portuguese clubs (Sporting CP, SC Braga, Vitória SC) across the 2021–22 season using your PT (digital) and reports (events) datasets. Metrics were normalized to a single season window and monetization was evaluated with weighted CPM/EPMV plus overridden season-revenue totals, benchmarked against a €125k annual sponsor cost.
+
+1. Sporting CP delivers the best overall ROI
+Across the overridden season totals vs. the €125k sponsor cost, Sporting CP ranks #1 on ROI, with SC Braga #2 and Vitória SC #3. (See ROI rank & final scoreboard queries.) 
+2. Sporting CP is most likely to hit break-even first
+On the cumulative revenue curve and break-even check, Sporting reaches the €125k threshold earlier (or closest to it) within the Aug–Jun season window, indicating faster payback. 
+3. SC Braga shows strong efficiency (EPMV/CPM)
+Weighted CPM/EPMV calculations plus the EPMV-to-CPM ratio put Braga very competitive on monetization efficiency per visit and per pageview—supporting its #2 ROI finish. 
+4. Sporting CP leads on income-weighted performance
+When metrics are correctly weighted by total income (not simple daily averages), Sporting retains the strongest “true” CPM/EPMV signal, reinforcing sponsor value quality. 
+5. Attendance & engagement tilt toward Sporting CP
+In the events reports, Sporting wins the most match-by-match attendance rounds and posts higher average occupancy/sell-out-like counts (≥90%), supporting superior fan demand. 
+6. Braga’s traffic depth is a bright spot
+Pages-per-visit and steady day-over-day income (lower volatility) indicate durable session depth and consistency—useful for predictable campaign pacing. 
+7. Vitória SC lags on revenue scale but adds portfolio reach
+Vitória generally trails on season revenue and ROI vs. the €125k cost, yet contributes incremental reach and additional matchdays; it can complement a multi-club mix. 
+8. Top revenue days concentrate in the same seasonal windows
+All clubs’ top-10 revenue days cluster within similar months once dates are normalized (2021–22), simplifying timing for sponsor bursts and tent-pole activations. 
+9. Ticket-price-adjusted revenue potential still favors Sporting
+When attendance is translated into gross ticket revenue using club-specific prices, Sporting remains the top earner, with Braga competitive and Vitória third. 
+
+Final leaderboard stays consistent across tie-breakers
+Even after applying tie-breakers (weighted CPM/EPMV, attendance share, occupancy, sell-outs), the ranking remains: 1) Sporting CP, 2) SC Braga, 3) Vitória SC—a robust outcome across multiple lenses.
